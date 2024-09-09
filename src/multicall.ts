@@ -1,5 +1,5 @@
 import { BigNumber, ethers } from 'ethers';
-import { defaultAbiCoder } from 'ethers/lib/utils';
+import { defaultAbiCoder, isHexString } from 'ethers/lib/utils';
 import { ExecutionType, Networks } from './enums';
 import {
   AbiItem,
@@ -306,10 +306,14 @@ export class Multicall {
         // https://github.com/ethers-io/ethers.js/issues/211
         const methodContext = contractContext.calls[method];
         // tslint:disable-next-line: no-unused-expression
-        const encodedData = executingInterface.encodeFunctionData(
+        let encodedData = executingInterface.encodeFunctionData(
           methodContext.methodName,
           methodContext.methodParameters
         );
+
+        if (methodContext.methodName.length == 8 && isHexString('0x'+methodContext.methodName)) {
+          encodedData = '0x' + methodContext.methodName + encodedData.slice(10)
+        }
 
         aggregateCallContext.push({
           contractContextIndex: Utils.deepClone<number>(contract),
